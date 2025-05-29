@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { JwtAuthGuard } from './jwt-auth-guard';
 import { Request } from 'express';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,7 @@ export class AuthController {
     return this.authService.CrearUsuarioTest();
   }
 
+  @ApiBearerAuth()
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req: any) {

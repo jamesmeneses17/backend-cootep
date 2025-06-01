@@ -8,6 +8,8 @@ import { User } from '../users/entities/user.entity';
 import { JwtAuthGuard } from './jwt-auth-guard';
 import { Request } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,4 +39,16 @@ export class AuthController {
       user: req.user
     };
   }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.sendPasswordResetToken(dto);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
+
+
 }

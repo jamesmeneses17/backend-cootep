@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
+import { MailService } from '../common/mail.services';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -11,13 +12,19 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        JwtService, 
+        JwtService,
         {
           provide: getRepositoryToken(User),
           useValue: {
             findOne: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
+          },
+        },
+        {
+          provide: MailService,
+          useValue: {
+            send: jest.fn(), 
           },
         },
       ],

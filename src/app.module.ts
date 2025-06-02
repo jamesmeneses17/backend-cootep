@@ -11,8 +11,7 @@ import { JwtAuthGuard } from './auth/jwt-auth-guard';
     ConfigModule.forRoot({
       //envFilePath: `.env.${process.env.NODE_ENV}`, // utilizando las variables de entorno
       isGlobal: true, // para que las variables de entorno sean accesibles en toda la aplicación
-    }
-    ),
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -22,17 +21,13 @@ import { JwtAuthGuard } from './auth/jwt-auth-guard';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'], 
-
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService],
-
     }),
     AuthModule,
-
-
   ],
   controllers: [AppController],
-  providers: [AppService,JwtAuthGuard],
+  providers: [AppService, JwtAuthGuard],
 })
-export class AppModule { }
+export class AppModule {}

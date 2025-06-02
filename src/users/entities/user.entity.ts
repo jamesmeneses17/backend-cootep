@@ -46,4 +46,7 @@ export class User {
 
   @Column({ nullable: true, type: 'datetime' })
   resetTokenExpires: Date | null;
+
+  @Column({ default: false })
+  isTempPassword: boolean;
 }

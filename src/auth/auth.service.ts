@@ -14,8 +14,8 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as dayjs from 'dayjs';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { MailService } from '../common/mail.services';
 import { FailedLogin } from '../common/interfaces/jwt-payload.interface';
+import { MailService } from '../common/mail/mail.services';
 
 @Injectable()
 export class AuthService {
@@ -121,15 +121,8 @@ export class AuthService {
     user.resetTokenExpires = expires;
     await this.userRepository.save(user);
 
-    await this.mailService.send({
-      to: user.email,
-      subject: 'Recuperación de contraseña',
-      html: `
-        <p>Has solicitado recuperar tu contraseña.</p>
-        <p><a href="http://tu-app.com/reset-password?token=${token}">Haz clic aquí para restablecerla</a></p>
-        <p>Este enlace expira en 15 minutos.</p>
-      `,
-    });
+    // Enviar correo con el enlace de recuperación
+    await this.mailService.sendPasswordResetLink(user.email, token);
 
     return {
       message: 'Se ha enviado el enlace de recuperación al correo registrado',
@@ -159,6 +152,7 @@ export class AuthService {
     user.resetTokenExpires = null;
 
     await this.userRepository.save(user);
+    await this.mailService.sendPasswordChangedConfirmation(user.email);
 
     return {
       message: 'Contraseña actualizada exitosamente',

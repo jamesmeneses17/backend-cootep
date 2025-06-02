@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -16,6 +17,8 @@ import * as dayjs from 'dayjs';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { FailedLogin } from '../common/interfaces/jwt-payload.interface';
 import { MailService } from '../common/mail/mail.services';
+import { FirstLoginChangePasswordDto } from './dto/first-login-change-password.dto';
+import { access } from 'fs';
 
 @Injectable()
 export class AuthService {
@@ -33,25 +36,47 @@ export class AuthService {
   async login({ identifier, password }: LoginDto) {
     this.throwifBlocked(identifier);
 
+    //identificador recibido
+    console.log('Identificador recibido:', identifier);
+
     const user = await this.userRepository.findOne({
       where: [{ email: identifier }, { cedula: identifier }],
     });
 
+    //Log del usuario encontrado
+    console.log('usuario encontrado:', user);
+
     const passwordValid =
       user && (await bcrypt.compare(password, user.password));
+
+    console.log('Contraseña valida?', passwordValid);
 
     if (!passwordValid) {
       this.trackFailedAttempt(identifier);
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    // Ingresar una nueva contraseña si es temporal
+    if (user.isTempPassword) {
+      console.log('Constraseña temporal detectada');
+      return {
+        message: 'Debe cambiar su contraseña temporal antes de continuar',
+        forcePasswordChange: true,
+        userId: user.id,
+      };
+    }
+
     this.clearFailedAttempts(identifier);
 
+    const token = this.jwtService.sign(
+      { sub: user.id, role: user.role },
+      { expiresIn: '1h' },
+    );
+
+    console.log('Token generado exitosamente', token);
+
     return {
-      access_token: this.jwtService.sign(
-        { sub: user.id, role: user.role },
-        { expiresIn: '1h' },
-      ),
+      access_token: token,
     };
   }
 
@@ -161,6 +186,29 @@ export class AuthService {
         { sub: user.id, role: user.role },
         { expiresIn: '1h' },
       ),
+    };
+  }
+
+  // Cambiar la contraseña temporal en el primer inicio de sesión
+  async changeTempPassword(dto: FirstLoginChangePasswordDto) {
+    const user = await this.userRepository.findOne({
+      where: { id: dto.userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    if (!user.isTempPassword) {
+      throw new BadRequestException('La contraseña ya ha sido cambiada');
+    }
+
+    user.password = await bcrypt.hash(dto.newPassword, 10);
+    user.isTempPassword = false;
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Contraseña actualizada exitosamente. Ya puede iniciar sesion',
     };
   }
 }

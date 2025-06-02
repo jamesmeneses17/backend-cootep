@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
@@ -162,6 +162,11 @@ export class AuthService {
 
     return {
       message: 'Contraseña actualizada exitosamente',
+      //Genera un nuevo token de acceso tras el cambio de contraseña
+      access_token: this.jwtService.sign(
+        { sub: user.id, role: user.role },
+        { expiresIn: '1h' },
+      ),
     };
   }
 }

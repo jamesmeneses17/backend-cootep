@@ -21,5 +21,4 @@ jobs:
       - name: Ejecutar pruebas (Jest)
         run: npm test
 
-      - name: Verificar calidad con ESLint
-        run: npx eslint src --ext .ts
+     

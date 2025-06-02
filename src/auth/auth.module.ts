@@ -9,7 +9,7 @@ import { MailService } from '../common/mail.services';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]), 
+    TypeOrmModule.forFeature([User]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secreto',
       signOptions: { expiresIn: '1h' },

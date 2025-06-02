@@ -24,7 +24,7 @@ describe('AuthService', () => {
         {
           provide: MailService,
           useValue: {
-            send: jest.fn(), 
+            send: jest.fn(),
           },
         },
       ],

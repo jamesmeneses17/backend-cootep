@@ -19,6 +19,7 @@ import { FailedLogin } from '../common/interfaces/jwt-payload.interface';
 import { MailService } from '../common/mail/mail.services';
 import { FirstLoginChangePasswordDto } from './dto/first-login-change-password.dto';
 import { access } from 'fs';
+import { validatePasswordStrength } from '../common/utils/password-validator';
 
 @Injectable()
 export class AuthService {
@@ -158,6 +159,12 @@ export class AuthService {
   async resetPassword(dto: ResetPasswordDto) {
     const { token, newPassword } = dto;
 
+    // Validar la fortaleza de la nueva contraseña que cumpla con los requisitos
+    const validationError = validatePasswordStrength(newPassword);
+    if (validationError) {
+      throw new BadRequestException(validationError);
+    }
+
     const user = await this.userRepository.findOne({
       where: { resetToken: token },
     });
@@ -191,6 +198,12 @@ export class AuthService {
 
   // Cambiar la contraseña temporal en el primer inicio de sesión
   async changeTempPassword(dto: FirstLoginChangePasswordDto) {
+    // Validar que la nueva contraseña cumpla con los requisitos de fortaleza
+    const validationError = validatePasswordStrength(dto.newPassword);
+    if (validationError) {
+      throw new BadRequestException(validationError);
+    }
+
     const user = await this.userRepository.findOne({
       where: { id: dto.userId },
     });

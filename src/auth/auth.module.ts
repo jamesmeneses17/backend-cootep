@@ -5,10 +5,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { JwtStrategy } from './jwt.strategy';
-import { MailService } from '../common/mail.services';
-
+import { MailModule } from '../common/mail/mail.module';
+import { MailService } from '../common/mail/mail.services';
 @Module({
   imports: [
+    MailModule,
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secreto',

@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
-import { MailService } from '../common/mail.services';
+import { MailService } from '../common/mail/mail.services';
 
 describe('AuthController', () => {
   let controller: AuthController;

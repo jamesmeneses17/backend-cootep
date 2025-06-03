@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('employees')
 export class Employee {
@@ -16,4 +24,7 @@ export class Employee {
 
   @Column({ type: 'date' })
   birth_date: Date;
+
+  @OneToOne(() => User, (user) => user.employee)
+  user: User;
 }

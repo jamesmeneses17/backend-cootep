@@ -49,4 +49,7 @@ export class User {
 
   @Column({ default: false })
   isTempPassword: boolean;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  refreshToken?: string;
 }

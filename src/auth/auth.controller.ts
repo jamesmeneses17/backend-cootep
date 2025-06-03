@@ -10,6 +10,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { FirstLoginChangePasswordDto } from './dto/first-login-change-password.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -52,5 +53,10 @@ export class AuthController {
   @Post('first-login-change-password')
   async changeTempPassword(@Body() dto: FirstLoginChangePasswordDto) {
     return this.authService.changeTempPassword(dto);
+  }
+
+  @Post('refresh-token')
+  refresAccessToken(@Body() dto: RefreshTokenDto) {
+    return this.authService.refreshToken(dto);
   }
 }

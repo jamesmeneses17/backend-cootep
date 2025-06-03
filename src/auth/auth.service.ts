@@ -15,11 +15,15 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as dayjs from 'dayjs';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { FailedLogin } from '../common/interfaces/jwt-payload.interface';
+import {
+  FailedLogin,
+  JwtPayload,
+} from '../common/interfaces/jwt-payload.interface';
 import { MailService } from '../common/mail/mail.services';
 import { FirstLoginChangePasswordDto } from './dto/first-login-change-password.dto';
 import { access } from 'fs';
 import { validatePasswordStrength } from '../common/utils/password-validator';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Injectable()
 export class AuthService {
@@ -36,15 +40,12 @@ export class AuthService {
   // Método principal para manejar el login
   async login({ identifier, password }: LoginDto) {
     this.throwifBlocked(identifier);
-
-    //identificador recibido
     console.log('Identificador recibido:', identifier);
 
     const user = await this.userRepository.findOne({
       where: [{ email: identifier }, { cedula: identifier }],
     });
 
-    //Log del usuario encontrado
     console.log('usuario encontrado:', user);
 
     const passwordValid =
@@ -57,7 +58,6 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Ingresar una nueva contraseña si es temporal
     if (user.isTempPassword) {
       console.log('Constraseña temporal detectada');
       return {
@@ -69,15 +69,30 @@ export class AuthService {
 
     this.clearFailedAttempts(identifier);
 
-    const token = this.jwtService.sign(
+    //  Generar access token
+    const accessToken = this.jwtService.sign(
       { sub: user.id, role: user.role },
       { expiresIn: '1h' },
     );
 
-    console.log('Token generado exitosamente', token);
+    // Generar refresh token
+    const refreshToken = this.jwtService.sign(
+      { sub: user.id },
+      {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+        expiresIn: '7d',
+      },
+    );
+
+    // Guardar refresh token en la base de datos
+    user.refreshToken = refreshToken;
+    await this.userRepository.save(user);
+
+    console.log('Tokens generados exitosamente');
 
     return {
-      access_token: token,
+      access_token: accessToken,
+      refresh_token: refreshToken,
     };
   }
 
@@ -223,5 +238,42 @@ export class AuthService {
     return {
       message: 'Contraseña actualizada exitosamente. Ya puede iniciar sesion',
     };
+  }
+
+  //Metodo del refresh token
+  // Recibe el refresh que el front le envía
+  // Verifica con la clave secreta del refresh token
+  // Genera un nuevo access token
+  async refreshToken(dto: RefreshTokenDto) {
+    const { refreshToken } = dto;
+
+    // Valida que el que el token no sea nulo usando la llave clave secreta
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      }) as JwtPayload;
+
+      //Buscar el usuario por el id del payload
+      const user = await this.userRepository.findOne({
+        where: { id: payload.sub },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Usuario no valido');
+      }
+
+      const newAccesToken = this.jwtService.sign(
+        { sub: user.id, role: user.role },
+        { expiresIn: '1h' },
+      );
+
+      return {
+        access_token: newAccesToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException(
+        'Token de actualización inválido o expirado',
+      );
+    }
   }
 }

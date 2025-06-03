@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth-guard';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JwtAuthGuard } from './auth/jwt-auth-guard';
       inject: [ConfigService],
     }),
     AuthModule,
+    EmployeesModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],

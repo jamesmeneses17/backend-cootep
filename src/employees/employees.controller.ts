@@ -6,10 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth-guard';
+import { RequestWithUser } from '../common/interfaces/request-with-user.interface';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('employees')
 export class EmployeesController {
@@ -23,6 +28,14 @@ export class EmployeesController {
   @Get()
   findAll() {
     return this.employeesService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('profile')
+  async getProfile(@Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    return this.employeesService.getProfile(userId);
   }
 
   @Get(':id')

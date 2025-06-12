@@ -2,11 +2,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { EmploymentHistory } from '../../employment-history/entities/employment-history.entity';
 
 @Entity('employees')
 export class Employee {
@@ -25,6 +25,8 @@ export class Employee {
   @Column({ type: 'date' })
   birth_date: Date;
 
-  @OneToOne(() => User, (user) => user.employee)
+  @OneToOne(() => User, (user) => user.employee, { onDelete: 'CASCADE' })
   user: User;
+  @OneToMany(() => EmploymentHistory, (history) => history.employee)
+  historial: EmploymentHistory[];
 }

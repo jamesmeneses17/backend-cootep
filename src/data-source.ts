@@ -1,9 +1,6 @@
 import { DataSource } from 'typeorm';
-import * as dotenv from 'dotenv';
+// importa todas tus entidades reales aquí
 
-dotenv.config();
-
-// Archivo para generar migraciones
 export const AppDataSource = new DataSource({
   type: 'mysql',
   host: process.env.DB_HOST,
@@ -11,8 +8,6 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: ['src/**/entities/*.entity.ts'],
-
+  entities: [__dirname + '/**/*.entity.ts'],
   migrations: ['src/migrations/*.{ts,js}'],
-  synchronize: false,
 });

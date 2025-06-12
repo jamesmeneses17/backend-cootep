@@ -24,6 +24,8 @@ import { FirstLoginChangePasswordDto } from './dto/first-login-change-password.d
 import { access } from 'fs';
 import { validatePasswordStrength } from '../common/utils/password-validator';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { Employee } from '../employees/entities/employee.entity';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -32,29 +34,36 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
+
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
     private readonly mailService: MailService,
+
+    @InjectRepository(Employee)
+    private readonly employeeRepository: Repository<Employee>,
   ) {}
 
   // Método principal para manejar el login
-  async login({ identifier, password }: LoginDto) {
-    this.throwifBlocked(identifier);
-    console.log('Identificador recibido:', identifier);
+  async login({ email, password }: LoginDto) {
+    this.throwifBlocked(email);
+    console.log('Identificador recibido:', email);
 
+    // Busca el usuario únicamente por email
     const user = await this.userRepository.findOne({
-      where: [{ email: identifier }, { cedula: identifier }],
+      where: { email },
+      relations: ['role', 'employee'],
     });
 
     console.log('usuario encontrado:', user);
 
-    const passwordValid =
-      user && (await bcrypt.compare(password, user.password));
+    // Comparación directa si estás usando contraseñas sin encriptar
+    const passwordValid = user && password === user.password;
 
     console.log('Contraseña valida?', passwordValid);
 
     if (!passwordValid) {
-      this.trackFailedAttempt(identifier);
+      this.trackFailedAttempt(email);
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
@@ -67,11 +76,17 @@ export class AuthService {
       };
     }
 
-    this.clearFailedAttempts(identifier);
+    // Elimina el historial de intentos fallidos
+    this.clearFailedAttempts(email);
 
     //  Generar access token
     const accessToken = this.jwtService.sign(
-      { sub: user.id, role: user.role },
+      {
+        sub: user.id,
+        role: user.role.name, // ← aquí está el cambio correcto
+        email: user.email, // ← opcional pero recomendado
+        employeeId: user.employee?.id ?? null, // 👈 añade esto
+      },
       { expiresIn: '1h' },
     );
 
@@ -97,7 +112,7 @@ export class AuthService {
   }
 
   // Crea un usuario de prueba con contraseña encriptada
-  async CrearUsuarioTest() {
+  /*async CrearUsuarioTest() {
     const hashedPassword = await bcrypt.hash('123456', 10);
 
     const nuevoUsuario = this.userRepository.create({
@@ -119,7 +134,7 @@ export class AuthService {
       },
     };
   }
-
+*/
   // Lanza excepción si el usuario está temporalmente bloqueado
   private throwifBlocked(identifier: string) {
     const entry = this.failedAttempts.get(identifier);
@@ -275,5 +290,57 @@ export class AuthService {
         'Token de actualización inválido o expirado',
       );
     }
+  }
+
+  // Metodo cargar el perfil del usuario que se logue
+  async getProfile(userId: number) {
+    // 1. Consultar el usuario con role y empleado (sin historial)
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['role', 'employee'],
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    // 2. Si existe empleado, obtenerlo junto con su historial laboral
+    if (user.employee) {
+      const employeeWithHistory = await this.employeeRepository.findOne({
+        where: { id: user.employee.id },
+        relations: ['historial'], // <-- Carga el historial laboral
+      });
+    }
+
+    // 3. Construir el perfil con historial
+    return {
+      id: user.id,
+      email: user.email,
+      cedula: user.cedula,
+      role: user.role.name,
+      employee: user.employee
+        ? {
+            nombres: user.employee.first_name,
+            apellidos: user.employee.last_name,
+            cedula: user.employee.national_id,
+          }
+        : null,
+    };
+  }
+
+  async changePassword(userId: number, dto: ChangePasswordDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) throw new Error('Usuario no encontrado');
+
+    console.log('Password enviada:', dto.currentPassword);
+    console.log('Password en base de datos:', user.password);
+
+    if (dto.currentPassword.trim() !== user.password.trim()) {
+      throw new Error('La contraseña actual es incorrecta');
+    }
+
+    user.password = dto.newPassword;
+
+    await this.userRepository.save(user);
+
+    return { message: 'Contraseña cambiada con éxito' };
   }
 }

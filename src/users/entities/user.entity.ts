@@ -28,7 +28,7 @@ export class User {
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
-  @OneToOne(() => Employee)
+  @ManyToOne(() => Employee)
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 

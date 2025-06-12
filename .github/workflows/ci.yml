@@ -20,5 +20,3 @@ jobs:
 
       - name: Ejecutar pruebas (Jest)
         run: npm test
-
-     

@@ -3,6 +3,7 @@ export interface JwtPayload {
   sub: number;
   email: string;
   role: string;
+  employeeId?: number;
 }
 
 // Estructura-molde  para restrear intentos fallidos de login

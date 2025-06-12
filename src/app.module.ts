@@ -6,6 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth-guard';
 import { EmployeesModule } from './employees/employees.module';
+import { PositionModule } from './position/position.module';
+import { ContractTypeModule } from './contract-type/contract-type.module';
+import { EmploymentHistoryModule } from './employment-history/employment-history.module';
+import { CertificatesModule } from './certificates/certificates.module';
 
 @Module({
   imports: [
@@ -22,12 +26,17 @@ import { EmployeesModule } from './employees/employees.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        entities: ['dist/**/*.entity{.ts,.js}'],
+        synchronize: true,
       }),
       inject: [ConfigService],
     }),
     AuthModule,
     EmployeesModule,
+    PositionModule,
+    ContractTypeModule,
+    EmploymentHistoryModule,
+    CertificatesModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],

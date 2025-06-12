@@ -7,10 +7,12 @@ import { User } from '../users/entities/user.entity';
 import { JwtStrategy } from './jwt.strategy';
 import { MailModule } from '../common/mail/mail.module';
 import { MailService } from '../common/mail/mail.services';
+import { Employee } from '../employees/entities/employee.entity';
 @Module({
   imports: [
     MailModule,
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Employee]),
+
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secreto',
       signOptions: { expiresIn: '1h' },

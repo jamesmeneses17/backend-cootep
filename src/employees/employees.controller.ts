@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -54,5 +55,12 @@ export class EmployeesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.employeesService.remove(+id);
+  }
+  @ApiBearerAuth()
+  @Get('historial')
+  @UseGuards(JwtAuthGuard)
+  getOwnHistory(@Req() req) {
+    const employeeId = req.user.employeeId;
+    return this.employeesService.getEmploymentHistory(employeeId);
   }
 }

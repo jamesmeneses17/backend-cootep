@@ -1,1 +1,1 @@
-export class CreateEmployeeDto {}
+export class CreateEmployeeDto { }

@@ -29,4 +29,5 @@ export class Employee {
   user: User;
   @OneToMany(() => EmploymentHistory, (history) => history.employee)
   historial: EmploymentHistory[];
+  
 }

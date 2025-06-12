@@ -1,5 +1,5 @@
-// src/position/entities/position.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { JobFunction } from '../../functions/entities/function.entity';
 
 @Entity('positions')
 export class Position {
@@ -8,4 +8,7 @@ export class Position {
 
   @Column({ length: 100 })
   title: string;
+
+  @OneToMany(() => JobFunction, jobFunction => jobFunction.position)
+  functions: JobFunction[];
 }

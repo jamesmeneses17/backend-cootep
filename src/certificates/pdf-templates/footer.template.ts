@@ -22,7 +22,7 @@ export function generateFooter(): Content[] {
       fontSize: 8,
       alignment: 'center',
       color: '#666',
-      margin: [0, 10, 0, 0],
+      margin: [20, 10, 10, 10],
     },
   ];
 }

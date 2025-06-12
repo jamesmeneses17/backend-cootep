@@ -10,6 +10,8 @@ import { PositionModule } from './position/position.module';
 import { ContractTypeModule } from './contract-type/contract-type.module';
 import { EmploymentHistoryModule } from './employment-history/employment-history.module';
 import { CertificatesModule } from './certificates/certificates.module';
+import { FunctionsModule } from './functions/functions.module';
+
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { CertificatesModule } from './certificates/certificates.module';
     ContractTypeModule,
     EmploymentHistoryModule,
     CertificatesModule,
+    FunctionsModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],

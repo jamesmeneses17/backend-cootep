@@ -5,6 +5,10 @@ import { EmploymentHistory } from 'src/employment-history/entities/employment-hi
 import { Employee } from 'src/employees/entities/employee.entity';
 import { generateHeader } from './pdf-templates/header.template';
 import { generateSalaryContent } from './pdf-templates/type-salary.template';
+import { generateFunctionsContent } from './pdf-templates/type-functions.template';
+import { generateFooter } from './pdf-templates/footer.template';
+import type { Content } from 'pdfmake/build/pdfmake';
+
 
 const pdfMake = require('pdfmake/build/pdfmake');
 const pdfFonts = require('pdfmake/build/vfs_fonts');
@@ -23,45 +27,56 @@ export class CertificatesService {
 
     @InjectRepository(EmploymentHistory)
     private readonly historyRepo: Repository<EmploymentHistory>,
-  ) {}
+  ) { }
 
   async generatePdfBufferByType(
     employeeId: number,
     type: 'salario' | 'funciones' | 'historial',
   ): Promise<Buffer> {
-    // Buscar empleado
+
     const employee = await this.employeeRepo.findOne({
       where: { id: employeeId },
     });
     if (!employee) throw new NotFoundException('Empleado no encontrado');
 
-    // Buscar historial laboral
     const history = await this.historyRepo.find({
       where: { employee: { id: employeeId } },
-      relations: ['position', 'contractType'],
+      relations: ['position', 'position.functions', 'contractType'],
       order: { startDate: 'ASC' },
     });
 
+
+
     if (!history.length) throw new NotFoundException('Sin historial laboral');
 
-    // Archivos
-    const logoPath = path.join(
-      process.cwd(),
-      'src',
-      'assets',
-      'logo_cootep.png',
-    );
-    const signaturePath = path.join(
-      process.cwd(),
-      'src',
-      'assets',
-      'firma.png',
-    );
+    const logoPath = path.join(process.cwd(), 'src', 'assets', 'logo_cootep.png');
+    const signaturePath = path.join(process.cwd(), 'src', 'assets', 'firma.png');
     const logoBase64 = fs.readFileSync(logoPath).toString('base64');
     const firmaBase64 = fs.readFileSync(signaturePath).toString('base64');
 
     const content = [...generateHeader()];
-    content.push(...generateSalaryContent(employee, history));
+
+    switch (type) {
+      case 'salario':
+        content.push(...generateSalaryContent(employee, history));
+
+
+
+        break;
+      case 'funciones':
+        const currentHistory = history[history.length - 1];
+        const functions = currentHistory?.position?.functions || [];
+        content.push(...generateFunctionsContent(employee, functions, history));
+
+
+        break;
+
+      case 'historial':
+        content.push({ text: 'Certificado de historial laboral en desarrollo.' });
+        break;
+      default:
+        throw new NotFoundException('Tipo de certificado no válido');
+    }
 
     const docDefinition = {
       content,
@@ -69,13 +84,15 @@ export class CertificatesService {
         logo: 'data:image/png;base64,' + logoBase64,
         signature: 'data:image/png;base64,' + firmaBase64,
       },
-      pageMargins: [60, 60, 60, 60], // izquierda, arriba, derecha, abajo
+      pageMargins: [60, 60, 60, 60], // márgenes generales
       styles: {
         tituloInstitucional: { fontSize: 14, bold: true },
         subtitulo: { fontSize: 12, italics: true },
         negritaMayus: { fontSize: 14, bold: true, uppercase: true },
       },
+
     };
+
 
     return new Promise((resolve) => {
       const pdfDoc = pdfMake.createPdf(docDefinition);

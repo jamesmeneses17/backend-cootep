@@ -8,6 +8,7 @@ import { generateSalaryContent } from './pdf-templates/type-salary.template';
 import { generateFunctionsContent } from './pdf-templates/type-functions.template';
 import { generateFooter } from './pdf-templates/footer.template';
 import type { Content } from 'pdfmake/build/pdfmake';
+import { generateHistoryContent } from './pdf-templates/type-history.template';
 
 
 const pdfMake = require('pdfmake/build/pdfmake');
@@ -72,7 +73,7 @@ export class CertificatesService {
         break;
 
       case 'historial':
-        content.push({ text: 'Certificado de historial laboral en desarrollo.' });
+        content.push(...generateHistoryContent(employee, history));
         break;
       default:
         throw new NotFoundException('Tipo de certificado no válido');

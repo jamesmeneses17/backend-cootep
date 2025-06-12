@@ -1,68 +1,55 @@
 import type { Content } from 'pdfmake/build/pdfmake';
 import { generateFooter } from './footer.template';
 
-export function generateHistoryContent(
-  employee: any,
-  history: any[],
-): Content[] {
-  const fullName = `${employee.nombres} ${employee.apellidos}`.toUpperCase();
+export function generateHistoryContent(employee: any, history: any[]): Content[] {
+  const fullName = `${employee.first_name} ${employee.last_name}`.toUpperCase();
+  const idNumber = employee.national_id || '[Cédula no disponible]';
 
   const start = history[0];
   const end = history[history.length - 1];
 
-  const startDate = start
-    ? new Date(start.fecha_inicio).toLocaleDateString('es-CO', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
-    : '[Start date]';
+  const startDate = start?.startDate
+    ? new Date(start.startDate).toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
+    : '[Fecha de inicio]';
 
-  const endDate = end?.fecha_fin
-    ? new Date(end.fecha_fin).toLocaleDateString('es-CO', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
-    : 'present';
+  const endDate = end?.endDate
+    ? new Date(end.endDate).toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
+    : 'la fecha';
 
-  const today = new Date().toLocaleDateString('es-CO', {
+  const today = new Date();
+  const fechaEmision = today.toLocaleDateString('es-CO', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   });
 
-  const positionsList = history.map((h: any) => {
-    const position = h.cargo?.nombre || '[Undefined position]';
-    const start = new Date(h.fecha_inicio).toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
-    const end = h.fecha_fin
-      ? new Date(h.fecha_fin).toLocaleDateString('es-CO', {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
-        })
-      : 'present';
-    return `${position} from ${start} to ${end}`;
-  });
+  const cargos = history.map(h => h.position?.title).filter(Boolean);
+  const listaCargos =
+    cargos.length > 1
+      ? `${cargos.slice(0, -1).join(', ')} y ${cargos[cargos.length - 1]}`
+      : cargos[0] || '[Sin cargos]';
 
   return [
+
     {
-      text: `That Mr./Ms. ${fullName}, holder of ID No. ${employee.cedula}, worked at our Cooperative from ${startDate} to ${endDate}, performing the following positions:`,
-      fontSize: 11,
-      margin: [0, 0, 0, 10],
-    },
-    {
-      ul: positionsList.length ? positionsList : ['[No history available]'],
-      fontSize: 10,
+      text: `Que el señor ${fullName}, identificado con cédula de ciudadanía Nro. ${idNumber} de Mocoa, prestó sus servicios en nuestra Cooperativa desde el ${startDate} hasta el ${endDate}, desempeñando los siguientes cargos: ${listaCargos}.`,
+      fontSize: 15,
+      alignment: 'justify',
+      lineHeight: 1.5,
       margin: [0, 0, 0, 20],
     },
     {
-      text: `Issued in Mocoa on ${today}.`,
-      fontSize: 11,
+      text: `Para constancia se firma en Mocoa, a los ${fechaEmision}.`,
+      fontSize: 15,
+      alignment: 'justify',
       margin: [0, 0, 0, 20],
     },
     ...generateFooter(),

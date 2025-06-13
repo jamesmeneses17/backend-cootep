@@ -31,6 +31,13 @@ export class EmploymentHistoryController {
     return this.service.getHistoryDateRange(employeeId);
   }
 
+  @Get('dates')
+  @UseGuards(JwtAuthGuard)
+  getAllStartDates() {
+    return this.service.getAllStartDates();
+  }
+
+
 
 
 

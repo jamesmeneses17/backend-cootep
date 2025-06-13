@@ -9,6 +9,8 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -19,7 +21,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('employees')
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) {}
+  constructor(private readonly employeesService: EmployeesService) { }
 
   @Post()
   create(@Body() createEmployeeDto: CreateEmployeeDto) {
@@ -27,9 +29,10 @@ export class EmployeesController {
   }
 
   @Get()
-  findAll() {
-    return this.employeesService.findAll();
+  findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
+    return this.employeesService.findPaginated(+page, +limit);
   }
+
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -45,12 +48,10 @@ export class EmployeesController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateEmployeeDto: UpdateEmployeeDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateEmployeeDto: UpdateEmployeeDto) {
     return this.employeesService.update(+id, updateEmployeeDto);
   }
+
 
   @Delete(':id')
   remove(@Param('id') id: string) {
@@ -63,4 +64,11 @@ export class EmployeesController {
     const employeeId = req.user.employeeId;
     return this.employeesService.getEmploymentHistory(employeeId);
   }
+
+  @Get(':id/details')
+  getDetailedView(@Param('id', ParseIntPipe) id: number) {
+    return this.employeesService.findOneWithDetails(id);
+  }
+
+
 }

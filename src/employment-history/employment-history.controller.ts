@@ -1,8 +1,18 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Body,
+  Param,
+  Req,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { EmploymentHistoryService } from './employment-history.service';
 import { JwtAuthGuard } from '../auth/jwt-auth-guard';
 import { CustomRequest } from '../common/interfaces/custom-request.interface';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UpdateEmploymentHistoryDto } from './dto/update-employment-history.dto';
 
 @ApiTags('EmploymentHistory')
 @ApiBearerAuth()
@@ -18,27 +28,27 @@ export class EmploymentHistoryController {
   }
 
   @Get('all')
-  @UseGuards(JwtAuthGuard)
   getAllEmploymentHistory(@Req() req: any) {
     const employeeId = req.user.employeeId;
     return this.service.getAllEmploymentHistory(employeeId);
   }
 
   @Get('range')
-  @UseGuards(JwtAuthGuard)
-  async getDateRange(@Req() req: CustomRequest) {
+  getDateRange(@Req() req: CustomRequest) {
     const employeeId = req.user.employeeId;
     return this.service.getHistoryDateRange(employeeId);
   }
 
   @Get('dates')
-  @UseGuards(JwtAuthGuard)
   getAllStartDates() {
     return this.service.getAllStartDates();
   }
 
-
-
-
-
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdateEmploymentHistoryDto,
+  ) {
+    return this.service.update(id, updateDto);
+  }
 }

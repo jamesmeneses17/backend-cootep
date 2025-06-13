@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EmploymentHistory } from './entities/employment-history.entity';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
+import { UpdateEmploymentHistoryDto } from './dto/update-employment-history.dto';
 
 @Injectable()
 export class EmploymentHistoryService {
@@ -68,4 +69,16 @@ export class EmploymentHistoryService {
 
     return result.map(r => r.date);
   }
+
+  async update(id: number, updateDto: UpdateEmploymentHistoryDto) {
+    const history = await this.employmentHistoryRepo.findOneBy({ id });
+    if (!history) {
+      throw new NotFoundException('Historial no encontrado');
+    }
+
+    Object.assign(history, updateDto);
+    return this.employmentHistoryRepo.save(history);
+  }
+
+
 }

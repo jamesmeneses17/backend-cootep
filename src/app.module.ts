@@ -6,12 +6,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth-guard';
 import { EmployeesModule } from './employees/employees.module';
-import { PositionModule } from './position/position.module';
 import { ContractTypeModule } from './contract-type/contract-type.module';
 import { EmploymentHistoryModule } from './employment-history/employment-history.module';
 import { CertificatesModule } from './certificates/certificates.module';
 import { FunctionsModule } from './functions/functions.module';
 import { StatusModule } from './status/status.module';
+import { PositionsModule } from './position/position.module';
+import { RolesModule } from './roles/roles.module';
 
 
 @Module({
@@ -36,12 +37,13 @@ import { StatusModule } from './status/status.module';
     }),
     AuthModule,
     EmployeesModule,
-    PositionModule,
+    PositionsModule,
     ContractTypeModule,
     EmploymentHistoryModule,
     CertificatesModule,
     FunctionsModule,
     StatusModule,
+    RolesModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],

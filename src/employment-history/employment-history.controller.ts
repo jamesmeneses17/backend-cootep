@@ -9,11 +9,29 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 @UseGuards(JwtAuthGuard)
 @Controller('employment-history')
 export class EmploymentHistoryController {
-  constructor(private readonly service: EmploymentHistoryService) {}
+  constructor(private readonly service: EmploymentHistoryService) { }
 
   @Get()
   findOwnHistory(@Req() req: CustomRequest) {
     const userId = req.user.sub;
     return this.service.findByAuthenticatedUser(userId);
   }
+
+  @Get('all')
+  @UseGuards(JwtAuthGuard)
+  getAllEmploymentHistory(@Req() req: any) {
+    const employeeId = req.user.employeeId;
+    return this.service.getAllEmploymentHistory(employeeId);
+  }
+
+  @Get('range')
+  @UseGuards(JwtAuthGuard)
+  async getDateRange(@Req() req: CustomRequest) {
+    const employeeId = req.user.employeeId;
+    return this.service.getHistoryDateRange(employeeId);
+  }
+
+
+
+
 }

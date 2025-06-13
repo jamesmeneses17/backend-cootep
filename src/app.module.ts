@@ -11,6 +11,7 @@ import { ContractTypeModule } from './contract-type/contract-type.module';
 import { EmploymentHistoryModule } from './employment-history/employment-history.module';
 import { CertificatesModule } from './certificates/certificates.module';
 import { FunctionsModule } from './functions/functions.module';
+import { StatusModule } from './status/status.module';
 
 
 @Module({
@@ -40,6 +41,7 @@ import { FunctionsModule } from './functions/functions.module';
     EmploymentHistoryModule,
     CertificatesModule,
     FunctionsModule,
+    StatusModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],

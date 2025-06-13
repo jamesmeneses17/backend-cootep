@@ -23,7 +23,7 @@ export class EmployeesService {
 
     @InjectRepository(EmploymentHistory)
     private employmentHistoryRepo: Repository<EmploymentHistory>,
-  ) {}
+  ) { }
 
   async create(createEmployeeDto: CreateEmployeeDto) {
     const employee = this.employeeRepository.create(createEmployeeDto);
@@ -31,8 +31,12 @@ export class EmployeesService {
   }
 
   async findAll() {
-    return await this.employeeRepository.find({ relations: ['user'] });
+    return await this.employeeRepository.find({
+      relations: ['user', 'status', 'employment_history', 'employment_history.position'],
+    });
   }
+
+
 
   async findOne(id: number) {
     const employee = await this.employeeRepository.findOne({

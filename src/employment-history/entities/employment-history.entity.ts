@@ -38,7 +38,7 @@ export class EmploymentHistory {
   @Column({ type: 'text', nullable: true })
   dutiesDescription: string;
 
-  @ManyToOne(() => Employee, (emp) => emp.historial, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Employee, (emp) => emp.employment_history, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 

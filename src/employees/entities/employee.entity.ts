@@ -4,9 +4,11 @@ import {
   Column,
   OneToOne,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { EmploymentHistory } from '../../employment-history/entities/employment-history.entity';
+import { Status } from '../../status/entities/status.entity';
 
 @Entity('employees')
 export class Employee {
@@ -28,6 +30,10 @@ export class Employee {
   @OneToOne(() => User, (user) => user.employee, { onDelete: 'CASCADE' })
   user: User;
   @OneToMany(() => EmploymentHistory, (history) => history.employee)
-  historial: EmploymentHistory[];
-  
+  employment_history: EmploymentHistory[];
+
+
+  @ManyToOne(() => Status, status => status.employees)
+  status: Status;
+
 }

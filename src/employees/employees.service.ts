@@ -12,6 +12,7 @@ import { Employee } from './entities/employee.entity';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { EmploymentHistory } from '../employment-history/entities/employment-history.entity';
+import { CreateFullEmployeeDto } from './dto/create-full-employee.dto';
 
 @Injectable()
 export class EmployeesService {
@@ -134,10 +135,14 @@ export class EmployeesService {
 
   async findPaginated(page: number, limit: number) {
     const [data, total] = await this.employeeRepository.findAndCount({
-      skip: (page - 1) * limit,
       take: limit,
-      relations: ['user', 'employment_history', 'employment_history.position', 'status'],
-      order: { id: 'ASC' },
+      skip: (page - 1) * limit,
+      relations: [
+        'user',
+        'status',
+        'employment_history',
+        'employment_history.position',
+      ],
     });
 
     return {
@@ -148,6 +153,7 @@ export class EmployeesService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
 
   async findOneWithDetails(id: number) {
     const employee = await this.employeeRepository.findOne({
@@ -173,5 +179,39 @@ export class EmployeesService {
       )[0],
     };
   }
+ async createWithUser(dto: CreateFullEmployeeDto) {
+  const { email, national_id, statusId, ...employeeData } = dto;
+
+  // 1. Crear el empleado
+  const employee = this.employeeRepository.create({
+    ...employeeData,
+    national_id,
+    birth_date: new Date(dto.birth_date),
+    status: { id: statusId },
+  });
+
+  await this.employeeRepository.save(employee);
+
+  // 2. Crear el usuario relacionado
+  const user = this.userRepository.create({
+    email,
+    cedula: national_id,
+    password: national_id, // la contraseña es igual a la cédula
+    role: { id: 2 }, // empleado
+    employee: employee,
+  });
+
+  await this.userRepository.save(user);
+
+  // 3. Retornar el empleado con relaciones
+  return this.employeeRepository.findOne({
+    where: { id: employee.id },
+    relations: ['user', 'status'],
+  });
+}
+
+
+
+
 
 }

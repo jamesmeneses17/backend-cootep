@@ -22,7 +22,7 @@ export class EmploymentHistory {
   startDate: Date;
 
   @Column({ type: 'date', nullable: true })
-  endDate: Date;
+  endDate: Date | null; // ✅ Ahora permite null sin error de tipo
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   salary: number;

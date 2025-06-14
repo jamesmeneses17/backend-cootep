@@ -18,6 +18,7 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth-guard';
 import { RequestWithUser } from '../common/interfaces/request-with-user.interface';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { CreateFullEmployeeDto } from './dto/create-full-employee.dto';
 
 @Controller('employees')
 export class EmployeesController {
@@ -69,6 +70,12 @@ export class EmployeesController {
   getDetailedView(@Param('id', ParseIntPipe) id: number) {
     return this.employeesService.findOneWithDetails(id);
   }
+
+  @Post('full')
+  createFullEmployee(@Body() dto: CreateFullEmployeeDto) {
+    return this.employeesService.createWithUser(dto);
+  }
+
 
 
 }

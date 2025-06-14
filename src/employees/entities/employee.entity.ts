@@ -5,6 +5,7 @@ import {
   OneToOne,
   OneToMany,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { EmploymentHistory } from '../../employment-history/entities/employment-history.entity';
@@ -29,11 +30,14 @@ export class Employee {
 
   @OneToOne(() => User, (user) => user.employee, { onDelete: 'CASCADE' })
   user: User;
+
   @OneToMany(() => EmploymentHistory, (history) => history.employee)
   employment_history: EmploymentHistory[];
 
-
   @ManyToOne(() => Status, status => status.employees)
+  @JoinColumn({ name: 'statusId' }) 
   status: Status;
 
+  @Column({ nullable: true }) 
+  statusId: number;
 }

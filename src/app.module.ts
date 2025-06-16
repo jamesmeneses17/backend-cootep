@@ -13,6 +13,7 @@ import { FunctionsModule } from './functions/functions.module';
 import { StatusModule } from './status/status.module';
 import { PositionsModule } from './position/position.module';
 import { RolesModule } from './roles/roles.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 
 @Module({
@@ -43,7 +44,8 @@ import { RolesModule } from './roles/roles.module';
     CertificatesModule,
     FunctionsModule,
     StatusModule,
-    RolesModule
+    RolesModule,
+    StatisticsModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],

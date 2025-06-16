@@ -12,4 +12,7 @@ export class Status {
 
     @OneToMany(() => Employee, employee => employee.status)
     employees: Employee[];
+
+   
+
 }

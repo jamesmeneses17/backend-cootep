@@ -11,4 +11,8 @@ export class Position {
 
   @OneToMany(() => JobFunction, jobFunction => jobFunction.position)
   functions: JobFunction[];
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
 }

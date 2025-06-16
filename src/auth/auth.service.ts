@@ -42,7 +42,7 @@ export class AuthService {
 
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
-  ) {}
+  ) { }
 
   // Método principal para manejar el login
   async login({ email, password }: LoginDto) {
@@ -85,7 +85,7 @@ export class AuthService {
         sub: user.id,
         role: user.role.name, // ← aquí está el cambio correcto
         email: user.email, // ← opcional pero recomendado
-        employeeId: user.employee?.id ?? null, // 👈 añade esto
+        employeeId: user.employee?.id ?? null,
       },
       { expiresIn: '1h' },
     );
@@ -101,6 +101,7 @@ export class AuthService {
 
     // Guardar refresh token en la base de datos
     user.refreshToken = refreshToken;
+    user.last_login = new Date();
     await this.userRepository.save(user);
 
     console.log('Tokens generados exitosamente');
@@ -317,10 +318,10 @@ export class AuthService {
       role: user.role.name,
       employee: user.employee
         ? {
-            nombres: user.employee.first_name,
-            apellidos: user.employee.last_name,
-            cedula: user.employee.national_id,
-          }
+          nombres: user.employee.first_name,
+          apellidos: user.employee.last_name,
+          cedula: user.employee.national_id,
+        }
         : null,
     };
   }

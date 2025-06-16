@@ -1,26 +1,40 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateFunctionDto } from './dto/create-function.dto';
 import { UpdateFunctionDto } from './dto/update-function.dto';
+import { JobFunction } from './entities/function.entity';
 
 @Injectable()
 export class FunctionsService {
+  constructor(
+    @InjectRepository(JobFunction)
+    private readonly functionRepository: Repository<JobFunction>,
+  ) { }
+
   create(createFunctionDto: CreateFunctionDto) {
-    return 'This action adds a new function';
+    const nuevaFuncion = this.functionRepository.create(createFunctionDto);
+    return this.functionRepository.save(nuevaFuncion);
   }
 
-  findAll() {
-    return `This action returns all functions`;
+  async findAll() {
+    return this.functionRepository.find({
+      relations: ['position'],
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} function`;
+    return this.functionRepository.findOne({
+      where: { id },
+      relations: ['position'],
+    });
   }
 
   update(id: number, updateFunctionDto: UpdateFunctionDto) {
-    return `This action updates a #${id} function`;
+    return this.functionRepository.update(id, updateFunctionDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} function`;
+  async remove(id: number) {
+    return this.functionRepository.delete(id);
   }
 }

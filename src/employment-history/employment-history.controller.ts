@@ -8,6 +8,7 @@ import {
   UseGuards,
   ParseIntPipe,
   Post,
+  Delete,
 } from '@nestjs/common';
 import { EmploymentHistoryService } from './employment-history.service';
 import { JwtAuthGuard } from '../auth/jwt-auth-guard';
@@ -23,34 +24,34 @@ import { CreateEmploymentHistoryDto } from './dto/create-employment-history.dto'
 export class EmploymentHistoryController {
   constructor(private readonly service: EmploymentHistoryService) { }
 
-  //  Ver historial del empleado autenticado
+  // Ver historial del empleado autenticado
   @Get()
   findOwnHistory(@Req() req: CustomRequest) {
     const userId = req.user.sub;
     return this.service.findByAuthenticatedUser(userId);
   }
 
-  //  Ver todos los historiales del empleado autenticado por employeeId
+  // Ver todos los historiales del empleado autenticado por employeeId
   @Get('all')
   getAllEmploymentHistory(@Req() req: any) {
     const employeeId = req.user.employeeId;
     return this.service.getAllEmploymentHistory(employeeId);
   }
 
-  //  Obtener rango de fechas del historial del empleado autenticado
+  // Obtener rango de fechas del historial del empleado autenticado
   @Get('range')
   getDateRange(@Req() req: CustomRequest) {
     const employeeId = req.user.employeeId;
     return this.service.getHistoryDateRange(employeeId);
   }
 
-  //  Obtener todas las fechas de inicio globales
+  // Obtener todas las fechas de inicio globales
   @Get('dates')
   getAllStartDates() {
     return this.service.getAllStartDates();
   }
 
-  //  Actualizar historial laboral
+  // Actualizar historial laboral
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -59,14 +60,21 @@ export class EmploymentHistoryController {
     return this.service.update(id, updateDto);
   }
 
-  // 
+  // Obtener todos los historiales (modo admin)
   @Get('admin/all')
   async findAll() {
     return this.service.findAll();
   }
 
+  // Crear historial
   @Post()
   create(@Body() dto: CreateEmploymentHistoryDto) {
     return this.service.create(dto);
+  }
+
+  // Eliminar historial
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.service.remove(id);
   }
 }

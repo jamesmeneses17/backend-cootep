@@ -14,9 +14,9 @@ export class EmploymentHistoryService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-  ) {}
+  ) { }
 
-  // 🔒 Historial del usuario autenticado
+  //  Historial del usuario autenticado
   async findByAuthenticatedUser(userId: number) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
@@ -75,38 +75,38 @@ export class EmploymentHistoryService {
     return result.map(r => r.date);
   }
 
-async update(id: number, dto: UpdateEmploymentHistoryDto) {
-  const history = await this.employmentHistoryRepo.findOne({
-    where: { id },
-    relations: ['position', 'contractType'],
-  });
+  async update(id: number, dto: UpdateEmploymentHistoryDto) {
+    const history = await this.employmentHistoryRepo.findOne({
+      where: { id },
+      relations: ['position', 'contractType'],
+    });
 
-  if (!history) {
-    throw new NotFoundException('Historial no encontrado');
+    if (!history) {
+      throw new NotFoundException('Historial no encontrado');
+    }
+
+    if (dto.salary !== undefined) {
+      history.salary = dto.salary;
+    }
+
+    if (dto.startDate) {
+      history.startDate = new Date(dto.startDate);
+    }
+
+    if (dto.endDate !== undefined) {
+      history.endDate = dto.endDate ? new Date(dto.endDate) : null;
+    }
+
+    if (dto.positionId !== undefined) {
+      history.position = { id: dto.positionId } as any;
+    }
+
+    if (dto.contractTypeId !== undefined) {
+      history.contractType = { id: dto.contractTypeId } as any;
+    }
+
+    return this.employmentHistoryRepo.save(history);
   }
-
-  if (dto.salary !== undefined) {
-    history.salary = dto.salary;
-  }
-
-  if (dto.startDate) {
-    history.startDate = new Date(dto.startDate);
-  }
-
-  if (dto.endDate !== undefined) {
-    history.endDate = dto.endDate ? new Date(dto.endDate) : null;
-  }
-
-  if (dto.positionId !== undefined) {
-    history.position = { id: dto.positionId } as any;
-  }
-
-  if (dto.contractTypeId !== undefined) {
-    history.contractType = { id: dto.contractTypeId } as any;
-  }
-
-  return this.employmentHistoryRepo.save(history);
-}
 
 
 
@@ -130,5 +130,14 @@ async update(id: number, dto: UpdateEmploymentHistoryDto) {
     });
 
     return this.employmentHistoryRepo.save(history);
+  }
+  async remove(id: number) {
+    const history = await this.employmentHistoryRepo.findOneBy({ id });
+
+    if (!history) {
+      throw new NotFoundException('Historial no encontrado');
+    }
+
+    return this.employmentHistoryRepo.remove(history);
   }
 }

@@ -20,7 +20,7 @@ export class AuthController {
     private readonly authService: AuthService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   @Post('login')
   login(@Body() loginDto: LoginDto) {
@@ -32,9 +32,13 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req: Request & { user: JwtPayload }) {
-    return this.authService.getProfile(req.user.sub);
+    return req.user;
   }
 
+  /* getProfile(@Req() req: Request & { user: JwtPayload }) {
+     return this.authService.getProfile(req.user.sub);
+   }
+ */
   @Post('forgot-password')
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.sendPasswordResetToken(dto);

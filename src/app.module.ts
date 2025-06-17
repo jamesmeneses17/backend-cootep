@@ -14,6 +14,7 @@ import { StatusModule } from './status/status.module';
 import { PositionsModule } from './position/position.module';
 import { RolesModule } from './roles/roles.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import { ImportExcelModule } from './import-excel/import-excel.module';
 
 
 @Module({
@@ -45,7 +46,8 @@ import { StatisticsModule } from './statistics/statistics.module';
     FunctionsModule,
     StatusModule,
     RolesModule,
-    StatisticsModule
+    StatisticsModule,
+    ImportExcelModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],

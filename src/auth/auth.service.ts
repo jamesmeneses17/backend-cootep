@@ -83,9 +83,10 @@ export class AuthService {
     const accessToken = this.jwtService.sign(
       {
         sub: user.id,
-        role: user.role.name, // ← aquí está el cambio correcto
-        email: user.email, // ← opcional pero recomendado
+        role: user.role.name, 
+        email: user.email, 
         employeeId: user.employee?.id ?? null,
+        is_superadmin: user.is_superadmin,
       },
       { expiresIn: '1h' },
     );

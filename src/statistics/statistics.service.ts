@@ -82,7 +82,7 @@ export class StatisticsService {
   }
 
   async topEmployeesWithMultipleContracts(): Promise<{ fullName: string, totalContracts: number }[]> {
-  return this.dataSource.query(`
+    return this.dataSource.query(`
     SELECT 
       CONCAT(e.first_name, ' ', e.last_name) AS fullName,
       COUNT(*) AS totalContracts
@@ -93,7 +93,6 @@ export class StatisticsService {
     ORDER BY totalContracts DESC
     LIMIT 5
   `);
-}
-
+  }
 
 }

@@ -29,10 +29,17 @@ export class EmployeesController {
     return this.employeesService.create(createEmployeeDto);
   }
 
-  @Get()
-  findAll(@Query('page') page = 1, @Query('limit') limit = 10) {
-    return this.employeesService.findPaginated(+page, +limit);
-  }
+// Paso 1: Backend - employees.controller.ts
+@Get()
+findAll(
+  @Query('page') page = 1,
+  @Query('limit') limit = 10,
+  @Query('search') search?: string,
+  @Query('status') status?: string,
+) {
+  return this.employeesService.findPaginated(+page, +limit, search, status);
+}
+
 
 
   @UseGuards(JwtAuthGuard)

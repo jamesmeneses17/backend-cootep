@@ -133,17 +133,28 @@ export class EmployeesService {
     });
   }
 
-  async findPaginated(page: number, limit: number) {
-    const [data, total] = await this.employeeRepository.findAndCount({
-      take: limit,
-      skip: (page - 1) * limit,
-      relations: [
-        'user',
-        'status',
-        'employment_history',
-        'employment_history.position',
-      ],
-    });
+  async findPaginated(page: number, limit: number, search?: string, status?: string) {
+    const query = this.employeeRepository.createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.user', 'user')
+      .leftJoinAndSelect('employee.status', 'status')
+      .leftJoinAndSelect('employee.employment_history', 'employment_history')
+      .leftJoinAndSelect('employment_history.position', 'position')
+      .orderBy('employee.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (search) {
+      query.andWhere(
+        '(employee.first_name LIKE :search OR employee.last_name LIKE :search OR employee.national_id LIKE :search OR user.email LIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    if (status && status !== 'all') {
+      query.andWhere('status.name = :status', { status });
+    }
+
+    const [data, total] = await query.getManyAndCount();
 
     return {
       data,
@@ -153,6 +164,7 @@ export class EmployeesService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
 
 
   async findOneWithDetails(id: number) {
@@ -182,6 +194,18 @@ export class EmployeesService {
  async createWithUser(dto: CreateFullEmployeeDto) {
   const { email, national_id, statusId, ...employeeData } = dto;
 
+  // 0. Validar si ya existe un usuario con el mismo correo
+  const existingUser = await this.userRepository.findOne({ where: { email } });
+  if (existingUser) {
+    throw new BadRequestException('El correo ya está registrado');
+  }
+
+  // 0. Validar si ya existe un empleado con la misma cédula
+  const existingEmployee = await this.employeeRepository.findOne({ where: { national_id } });
+  if (existingEmployee) {
+    throw new BadRequestException('La cédula ya está registrada');
+  }
+
   // 1. Crear el empleado
   const employee = this.employeeRepository.create({
     ...employeeData,
@@ -209,6 +233,7 @@ export class EmployeesService {
     relations: ['user', 'status'],
   });
 }
+
 
 
 

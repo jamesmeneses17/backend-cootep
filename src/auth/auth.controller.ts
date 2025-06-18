@@ -14,6 +14,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RequestWithUser } from '../common/interfaces/request-with-user.interface';
 
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -27,7 +28,8 @@ export class AuthController {
     console.log('Body recibido:', loginDto);
     return this.authService.login(loginDto);
   }
-
+  
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('profile')
   @UseGuards(JwtAuthGuard)

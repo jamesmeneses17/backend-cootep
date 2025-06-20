@@ -26,10 +26,11 @@ export class EmploymentHistoryController {
 
   // Ver historial del empleado autenticado
   @Get()
+  @UseGuards(JwtAuthGuard)
   findOwnHistory(@Req() req: CustomRequest) {
-    const userId = req.user.sub;
-    return this.service.findByAuthenticatedUser(userId);
-  }
+  const userId = req.user.sub;
+  return this.service.findByAuthenticatedUser(userId); 
+}
 
   // Ver todos los historiales del empleado autenticado por employeeId
   @Get('all')

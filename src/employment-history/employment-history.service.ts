@@ -17,19 +17,31 @@ export class EmploymentHistoryService {
   ) { }
 
   //  Historial del usuario autenticado
-  async findByAuthenticatedUser(userId: number) {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['employee'],
-    });
+ async findByAuthenticatedUser(userId: number) {
+  const user = await this.userRepo.findOne({
+    where: { id: userId },
+    relations: ['employee'],
+  });
 
-    if (!user?.employee) throw new NotFoundException('Empleado no encontrado');
+  if (!user?.employee) throw new NotFoundException('Empleado no encontrado');
 
-    return this.employmentHistoryRepo.findOne({
-      where: { employee: { id: user.employee.id } },
-      order: { startDate: 'DESC' },
+  return this.employmentHistoryRepo.findOne({
+    where: { employee: { id: user.employee.id } },
+    relations: ['position', 'contractType'], 
+    order: { startDate: 'DESC' },
+  });
+}
+
+
+  // Historial del empleado autenticado
+  /*async findByAuthenticatedUser(employeeId: number) {
+    return this.employmentHistoryRepo.find({
+      where: { employee: { id: employeeId } },
+      relations: ['position', 'contractType'],
+  order: { startDate: 'DESC' }
     });
   }
+  */
 
   // Todos los historiales de un empleado específico
   async getAllEmploymentHistory(employeeId: number) {

@@ -1,55 +1,70 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import basicAuth = require('express-basic-auth');
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AuthService } from './auth/auth.service';
-import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+import * as bodyParser from 'body-parser';
 import { join } from 'path';
 import * as express from 'express';
-import basicAuth = require('express-basic-auth');
+import { swaggerUsers } from './constants/swagger_credentials.constant';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: false });
+  app.use(bodyParser.urlencoded({ extended: true }));
   const configService = app.get(ConfigService);
-  const swaggerUser = configService.get<string>('SWAGGER_USER') || 'admin';
-  const swaggerPassword = configService.get<string>('SWAGGER_PASSWORD') || 'samawe';
+  const swaggerCredentials = await swaggerUsers();
+  const swaggerUser = swaggerCredentials.swaggerUser;
+  const swaggerPassword = swaggerCredentials.swaggerPassword;
 
-  app.use(
-    '/docs',
-    basicAuth({
-      challenge: true,
-      users: { [swaggerUser]: swaggerPassword },
+  if (swaggerUser && swaggerPassword) {
+    app.use(
+      ['/docs', '/docs-json'],
+      basicAuth({
+        users: { [swaggerUser]: swaggerPassword },
+        challenge: true,
+        realm: 'Swagger',
+      }),
+    );
+  }
+  const config = new DocumentBuilder()
+    .setTitle('COOTEP API')
+    .setDescription('API for managing the web app from "COOTEP"')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('docs', app, document);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
   app.useGlobalInterceptors(
-
     new ClassSerializerInterceptor(app.get(Reflector)),
   );
   const allowedHeaders = configService.get('app.cors.allowedHeaders');
   const allowedMethods = configService.get('app.cors.allowedMethods');
 
-
-  const config = new DocumentBuilder()
-    .setTitle('API CootepCertificados')
-    .setDescription('Documentacion del sistema')
-    .setVersion('1.0')
-    .addBearerAuth() // habilitacion del token de seguridad
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
-
-  //  Obtener e invocar AuthService
-  /*const authService = app.get(AuthService);
-  await authService.corregirPasswordAdmin();*/
   app.enableCors({
     origin: true,
     allowedHeaders,
     methods: allowedMethods,
     credentials: true,
   });
-
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+    }),
+  );
   app.use(
     '/docs',
     express.static(join(__dirname, '../node_modules/swagger-ui-dist')),
@@ -57,5 +72,3 @@ async function bootstrap() {
   await app.listen(configService.get<number>('APP_PORT') || 3000);
 }
 bootstrap();
-
-

@@ -1,53 +1,242 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { PersonalInfoDto } from './dto/personal-info.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Employee } from './entities/employee.entity';
 import { Repository } from 'typeorm';
+import { User } from '../users/entities/user.entity';
+import { EmploymentHistory } from '../employment-history/entities/employment-history.entity';
+import { CreateFullEmployeeDto } from './dto/create-full-employee.dto';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
-  ) {}
 
-  create(createEmployeeDto: CreateEmployeeDto) {
-    return 'This action adds a new employee';
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(EmploymentHistory)
+    private employmentHistoryRepo: Repository<EmploymentHistory>,
+  ) { }
+
+  async create(createEmployeeDto: CreateEmployeeDto) {
+    const employee = this.employeeRepository.create(createEmployeeDto);
+    return await this.employeeRepository.save(employee);
   }
 
-  findAll() {
-    return `This action returns all employees`;
+  async findAll() {
+    return await this.employeeRepository.find({
+      relations: ['user', 'status', 'employment_history', 'employment_history.position'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} employee`;
-  }
-
-  update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
-    return `This action updates a #${id} employee`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} employee`;
-  }
-
-  async getProfile(userId: number): Promise<PersonalInfoDto> {
+  async findOne(id: number) {
     const employee = await this.employeeRepository.findOne({
-      where: { user: { id: userId } },
+      where: { id },
       relations: ['user'],
     });
 
     if (!employee) {
+      throw new NotFoundException('Empleado no encontrado');
+    }
+
+    return employee;
+  }
+
+  async update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
+    const employee = await this.employeeRepository.findOne({
+      where: { id },
+      relations: ['user', 'status'],
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Empleado no encontrado');
+    }
+
+    // Actualiza datos personales
+    employee.first_name = updateEmployeeDto.first_name ?? employee.first_name;
+    employee.last_name = updateEmployeeDto.last_name ?? employee.last_name;
+    employee.national_id = updateEmployeeDto.national_id ?? employee.national_id;
+    employee.birth_date = updateEmployeeDto.birth_date ?? employee.birth_date;
+
+    // Actualiza status
+    if (updateEmployeeDto.statusId) {
+      employee.status = { id: updateEmployeeDto.statusId } as any;
+    }
+
+    // Actualiza datos del usuario (correo y rol)
+    if (updateEmployeeDto.email || updateEmployeeDto.roleId) {
+      const user = await this.userRepository.findOne({
+        where: { employee: { id } },
+        relations: ['role'],
+      });
+
+
+
+      if (user) {
+        if (updateEmployeeDto.email) user.email = updateEmployeeDto.email;
+        if (updateEmployeeDto.roleId) user.role = { id: updateEmployeeDto.roleId } as any;
+        await this.userRepository.save(user);
+      }
+    }
+
+    return await this.employeeRepository.save(employee);
+  }
+
+
+  async remove(id: number) {
+    const employee = await this.employeeRepository.findOneBy({ id });
+
+    if (!employee) {
+      throw new NotFoundException('Empleado no encontrado');
+    }
+
+    return await this.employeeRepository.remove(employee);
+  }
+
+  async getProfile(userId: number): Promise<PersonalInfoDto> {
+    if (!userId || isNaN(userId)) {
+      throw new BadRequestException('ID de usuario inválido');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['employee'],
+    });
+
+    if (!user || !user.employee) {
       throw new NotFoundException('Empleado no encontrado en la base de datos');
     }
+
+    const employee = user.employee;
 
     return {
       first_name: employee.first_name,
       last_name: employee.last_name,
       national_id: employee.national_id,
-      email: employee.user.email,
+      email: user.email,
     };
   }
+
+  async getEmploymentHistory(employeeId: number) {
+    return this.employmentHistoryRepo.find({
+      where: { employee: { id: employeeId } },
+      order: { startDate: 'DESC' },
+    });
+  }
+
+  async findPaginated(page: number, limit: number, search?: string, status?: string) {
+    const query = this.employeeRepository.createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.user', 'user')
+      .leftJoinAndSelect('employee.status', 'status')
+      .leftJoinAndSelect('employee.employment_history', 'employment_history')
+      .leftJoinAndSelect('employment_history.position', 'position')
+      .orderBy('employee.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (search) {
+      query.andWhere(
+        '(employee.first_name LIKE :search OR employee.last_name LIKE :search OR employee.national_id LIKE :search OR user.email LIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    if (status && status !== 'all') {
+      query.andWhere('status.name = :status', { status });
+    }
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+
+
+  async findOneWithDetails(id: number) {
+    const employee = await this.employeeRepository.findOne({
+      where: { id },
+      relations: [
+        'user',
+        'user.role',
+        'status',
+        'employment_history',
+        'employment_history.position',
+        'employment_history.contractType',
+      ],
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Empleado no encontrado');
+    }
+
+    return {
+      ...employee,
+      latestEmployment: employee.employment_history.sort(
+        (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      )[0],
+    };
+  }
+ async createWithUser(dto: CreateFullEmployeeDto) {
+  const { email, national_id, statusId, ...employeeData } = dto;
+
+  // 0. Validar si ya existe un usuario con el mismo correo
+  const existingUser = await this.userRepository.findOne({ where: { email } });
+  if (existingUser) {
+    throw new BadRequestException('El correo ya está registrado');
+  }
+
+  // 0. Validar si ya existe un empleado con la misma cédula
+  const existingEmployee = await this.employeeRepository.findOne({ where: { national_id } });
+  if (existingEmployee) {
+    throw new BadRequestException('La cédula ya está registrada');
+  }
+
+  // 1. Crear el empleado
+  const employee = this.employeeRepository.create({
+    ...employeeData,
+    national_id,
+    birth_date: new Date(dto.birth_date),
+    status: { id: statusId },
+  });
+
+  await this.employeeRepository.save(employee);
+
+  // 2. Crear el usuario relacionado
+  const user = this.userRepository.create({
+    email,
+    cedula: national_id,
+    password: national_id, // la contraseña es igual a la cédula
+    role: { id: 2 }, // empleado
+    employee: employee,
+  });
+
+  await this.userRepository.save(user);
+
+  // 3. Retornar el empleado con relaciones
+  return this.employeeRepository.findOne({
+    where: { id: employee.id },
+    relations: ['user', 'status'],
+  });
+}
+
+
+
+
+
+
 }

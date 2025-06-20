@@ -28,7 +28,7 @@ export class User {
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
-  @OneToOne(() => Employee)
+  @ManyToOne(() => Employee)
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 
@@ -52,4 +52,8 @@ export class User {
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   refreshToken?: string;
+
+  @Column({ default: false })
+  is_superadmin: boolean;
+
 }

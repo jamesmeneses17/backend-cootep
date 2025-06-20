@@ -1,36 +1,47 @@
 import { AppDataSource as dataSource } from '../data-source';
-import { User } from '../users/entities/user.entity';
 import { Employee } from '../employees/entities/employee.entity';
-import * as bcrypt from 'bcrypt';
 
 export const seedEmpleados = async () => {
   if (!dataSource.isInitialized) {
     await dataSource.initialize();
   }
 
-  const userRepository = dataSource.getRepository(User);
   const employeeRepository = dataSource.getRepository(Employee);
 
-  // Crear empleado
-  // define un objeto
-  const empleado = employeeRepository.create({
-    first_name: 'Laura',
-    last_name: 'Mora',
-    national_id: '12345678',
-    birth_date: new Date('1995-01-01'),
-  });
-  // Guarda el empleado en la base de datos
-  await employeeRepository.save(empleado);
+  const empleados = [
+    {
+      first_name: 'Laura',
+      last_name: 'Mora',
+      national_id: '12345678',
+      birth_date: new Date('1994-12-31'),
+    },
+    {
+      first_name: 'Karen',
+      last_name: 'Mora',
+      national_id: '87654321', // diferente ID
+      birth_date: new Date('1996-05-15'),
+    },
+    {
+      first_name: 'Admin',
+      last_name: 'Cootep',
+      national_id: '99999999',
+      birth_date: new Date('1990-01-01'),
+    },
+  ];
 
-  // Crear usuario asociado
-  const user = userRepository.create({
-    email: 'laura@cotep.com',
-    password: await bcrypt.hash('123456', 10),
-    cedula: '12345678',
-    role: { id: 2 },
-    employee: empleado,
-  });
-  await userRepository.save(user);
+  for (const empData of empleados) {
+    const exists = await employeeRepository.findOneBy({
+      national_id: empData.national_id,
+    });
 
-  console.log('seed de empleado completado');
+    if (!exists) {
+      const empleado = employeeRepository.create(empData);
+      await employeeRepository.save(empleado);
+      console.log(`✅ Empleado creado: ${empData.first_name}`);
+    } else {
+      console.log(`ℹ️ Empleado ya existe: ${empData.first_name}`);
+    }
+  }
+
+  console.log('✅ Seed de empleados completado');
 };

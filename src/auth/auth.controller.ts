@@ -11,6 +11,9 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { FirstLoginChangePasswordDto } from './dto/first-login-change-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { RequestWithUser } from '../common/interfaces/request-with-user.interface';
+
 
 @Controller('auth')
 export class AuthController {
@@ -18,28 +21,26 @@ export class AuthController {
     private readonly authService: AuthService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   @Post('login')
   login(@Body() loginDto: LoginDto) {
+    console.log('Body recibido:', loginDto);
     return this.authService.login(loginDto);
   }
-
-  @Post('test-user')
-  creartUsuarioTest() {
-    return this.authService.CrearUsuarioTest();
-  }
-
+  
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req: Request & { user: JwtPayload }) {
-    return {
-      message: 'Ruta protegida',
-      user: req.user,
-    };
+    return req.user;
   }
 
+  /* getProfile(@Req() req: Request & { user: JwtPayload }) {
+     return this.authService.getProfile(req.user.sub);
+   }
+ */
   @Post('forgot-password')
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.sendPasswordResetToken(dto);
@@ -58,5 +59,13 @@ export class AuthController {
   @Post('refresh-token')
   refresAccessToken(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshToken(dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  changePassword(@Req() req: RequestWithUser, @Body() dto: ChangePasswordDto) {
+    const userId = req.user.sub; // ya no dará error
+    return this.authService.changePassword(userId, dto);
   }
 }

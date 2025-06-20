@@ -7,6 +7,6 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return 'API CootepCert funcionando correctamente ✅';
+    return 'API CootepCert funcionando correctamente ';
   }
 }

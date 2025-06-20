@@ -1,16 +1,34 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AuthService } from './auth/auth.service';
+import { ClassSerializerInterceptor } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
+import * as express from 'express';
+import basicAuth = require('express-basic-auth');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const swaggerUser = configService.get<string>('SWAGGER_USER') || 'admin';
+  const swaggerPassword = configService.get<string>('SWAGGER_PASSWORD') || 'samawe';
 
-  //Habilitar CORS
-  app.enableCors({
-    origin: 'http://localhost:4200',
-    Credentials: true,
-  });
+  app.use(
+    '/docs',
+    basicAuth({
+      challenge: true,
+      users: { [swaggerUser]: swaggerPassword },
+    }),
+  );
+
+  app.useGlobalInterceptors(
+
+    new ClassSerializerInterceptor(app.get(Reflector)),
+  );
+  const allowedHeaders = configService.get('app.cors.allowedHeaders');
+  const allowedMethods = configService.get('app.cors.allowedMethods');
+
 
   const config = new DocumentBuilder()
     .setTitle('API CootepCertificados')
@@ -25,7 +43,19 @@ async function bootstrap() {
   //  Obtener e invocar AuthService
   /*const authService = app.get(AuthService);
   await authService.corregirPasswordAdmin();*/
+  app.enableCors({
+    origin: true,
+    allowedHeaders,
+    methods: allowedMethods,
+    credentials: true,
+  });
 
-  await app.listen(process.env.PORT ?? 3000);
+  app.use(
+    '/docs',
+    express.static(join(__dirname, '../node_modules/swagger-ui-dist')),
+  );
+  await app.listen(configService.get<number>('APP_PORT') || 3000);
 }
 bootstrap();
+
+

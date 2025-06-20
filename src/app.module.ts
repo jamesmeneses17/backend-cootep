@@ -32,7 +32,18 @@ import { ImportExcelModule } from './import-excel/import-excel.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: ['dist/**/*.entity{.ts,.js}'],
+        entities: [__dirname + '/src/*/.entity{.ts,.js}'],
+        autoLoadEntities: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        // --- INICIO DE LA MODIFICACIÓN ---
+        extra: {
+          connectionLimit: 10, // Cambiado 'max' por 'connectionLimit'
+          // Eliminada la opción 'keepAlive', ya que no es reconocida aquí
+        },
+        // --- FIN DE LA MODIFICACIÓN ---
+
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -52,4 +63,4 @@ import { ImportExcelModule } from './import-excel/import-excel.module';
   controllers: [AppController],
   providers: [AppService, JwtAuthGuard],
 })
-export class AppModule {}
+export class AppModule { }

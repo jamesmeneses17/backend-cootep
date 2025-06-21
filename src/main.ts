@@ -54,12 +54,21 @@ async function bootstrap() {
   const allowedHeaders = configService.get('app.cors.allowedHeaders');
   const allowedMethods = configService.get('app.cors.allowedMethods');
 
-  app.enableCors({
+  /*app.enableCors({
     origin: true,
     allowedHeaders,
     methods: allowedMethods,
     credentials: true,
+  });*/
+
+  app.enableCors({
+    origin: configService.get('APP_CORS_ORIGIN') || '*',
+    methods: allowedMethods,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+
+
   app.use(
     helmet({
       contentSecurityPolicy: false,

@@ -14,6 +14,7 @@ import { swaggerUsers } from './constants/swagger_credentials.constant';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: false });
   app.use(bodyParser.urlencoded({ extended: true }));
+
   const configService = app.get(ConfigService);
   const swaggerCredentials = await swaggerUsers();
   const swaggerUser = swaggerCredentials.swaggerUser;
@@ -29,6 +30,7 @@ async function bootstrap() {
       }),
     );
   }
+
   const config = new DocumentBuilder()
     .setTitle('COOTEP API')
     .setDescription('API for managing the web app from "COOTEP"')
@@ -37,7 +39,6 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-
   SwaggerModule.setup('docs', app, document);
 
   app.useGlobalPipes(
@@ -51,33 +52,30 @@ async function bootstrap() {
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector)),
   );
-  const allowedHeaders = configService.get('app.cors.allowedHeaders');
-  const allowedMethods = configService.get('app.cors.allowedMethods');
 
-  /*app.enableCors({
-    origin: true,
-    allowedHeaders,
-    methods: allowedMethods,
-    credentials: true,
-  });*/
+  // ✅ CORS CONFIG CORRECTO
+  const origin = configService.get<string>('APP_CORS_ORIGIN');
+  const allowedHeaders = configService.get<string>('APP_CORS_ALLOWED_HEADERS')?.split(',') || ['Content-Type', 'Authorization'];
+  const allowedMethods = configService.get<string>('APP_CORS_ALLOWED_METHODS')?.split(',') || ['GET', 'POST'];
 
   app.enableCors({
-    origin: configService.get('APP_CORS_ORIGIN') || '*',
+    origin,
+    credentials: true,
     methods: allowedMethods,
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: allowedHeaders,
   });
-
-
 
   app.use(
     helmet({
       contentSecurityPolicy: false,
     }),
   );
+
   app.use(
     '/docs',
     express.static(join(__dirname, '../node_modules/swagger-ui-dist')),
   );
+
   await app.listen(configService.get<number>('APP_PORT') || 3000);
 }
 bootstrap();

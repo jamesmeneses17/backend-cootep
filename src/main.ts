@@ -53,7 +53,7 @@ async function bootstrap() {
     new ClassSerializerInterceptor(app.get(Reflector)),
   );
 
-  // ✅ CORS CONFIG CORRECTO
+ 
   const origin = configService.get<string>('APP_CORS_ORIGIN');
   const allowedHeaders = configService.get<string>('APP_CORS_ALLOWED_HEADERS')?.split(',') || ['Content-Type', 'Authorization'];
   const allowedMethods = configService.get<string>('APP_CORS_ALLOWED_METHODS')?.split(',') || ['GET', 'POST'];

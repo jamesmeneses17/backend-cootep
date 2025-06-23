@@ -28,7 +28,7 @@ export class AuthController {
     console.log('Body recibido:', loginDto);
     return this.authService.login(loginDto);
   }
-  
+
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('profile')
@@ -51,10 +51,16 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+
   @Post('first-login-change-password')
   async changeTempPassword(@Body() dto: FirstLoginChangePasswordDto) {
     return this.authService.changeTempPassword(dto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
 
   @Post('refresh-token')
   refresAccessToken(@Body() dto: RefreshTokenDto) {

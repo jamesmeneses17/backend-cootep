@@ -22,7 +22,7 @@ import { CreateFullEmployeeDto } from './dto/create-full-employee.dto';
 
 @Controller('employees')
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) { }
+  constructor(private readonly employeesService: EmployeesService) {}
 
   @Post()
   create(@Body() createEmployeeDto: CreateEmployeeDto) {
@@ -40,8 +40,6 @@ export class EmployeesController {
     return this.employeesService.findPaginated(+page, +limit, search, status);
   }
 
-
-
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('profile')
@@ -50,21 +48,28 @@ export class EmployeesController {
     return this.employeesService.getProfile(userId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.employeesService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEmployeeDto: UpdateEmployeeDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateEmployeeDto: UpdateEmployeeDto,
+  ) {
     return this.employeesService.update(+id, updateEmployeeDto);
   }
 
-
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.employeesService.remove(+id);
   }
+
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('historial')
   @UseGuards(JwtAuthGuard)
@@ -72,17 +77,14 @@ export class EmployeesController {
     const employeeId = req.user.employeeId;
     return this.employeesService.getEmploymentHistory(employeeId);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get(':id/details')
   getDetailedView(@Param('id', ParseIntPipe) id: number) {
     return this.employeesService.findOneWithDetails(id);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Post('full')
   createFullEmployee(@Body() dto: CreateFullEmployeeDto) {
     return this.employeesService.createWithUser(dto);
   }
-
-
-
 }

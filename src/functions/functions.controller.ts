@@ -12,11 +12,13 @@ import { FunctionsService } from './functions.service';
 import { CreateFunctionDto } from './dto/create-function.dto';
 import { UpdateFunctionDto } from './dto/update-function.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard('jwt'))
+@ApiBearerAuth()
 @Controller('functions')
 export class FunctionsController {
-  constructor(private readonly functionsService: FunctionsService) { }
+  constructor(private readonly functionsService: FunctionsService) {}
 
   @Post()
   create(@Body() createFunctionDto: CreateFunctionDto) {

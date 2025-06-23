@@ -19,10 +19,11 @@ import { JwtAuthGuard } from '../auth/jwt-auth-guard';
 import { RequestWithUser } from '../common/interfaces/request-with-user.interface';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { CreateFullEmployeeDto } from './dto/create-full-employee.dto';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 
 @Controller('employees')
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) {}
+  constructor(private readonly employeesService: EmployeesService) { }
 
   @Post()
   create(@Body() createEmployeeDto: CreateEmployeeDto) {
@@ -49,12 +50,14 @@ export class EmployeesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.employeesService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -64,12 +67,12 @@ export class EmployeesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.employeesService.remove(+id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('historial')
   @UseGuards(JwtAuthGuard)
@@ -77,12 +80,19 @@ export class EmployeesController {
     const employeeId = req.user.employeeId;
     return this.employeesService.getEmploymentHistory(employeeId);
   }
+
+
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiExcludeEndpoint()
   @Get(':id/details')
   getDetailedView(@Param('id', ParseIntPipe) id: number) {
     return this.employeesService.findOneWithDetails(id);
   }
+
+
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('full')
   createFullEmployee(@Body() dto: CreateFullEmployeeDto) {
     return this.employeesService.createWithUser(dto);

@@ -14,6 +14,13 @@ RUN npm run build
 # Etapa 2: Ejecución para producción
 FROM node:20-alpine AS runner
 
+# Instalar fuentes necesarias para pdfmake en Alpine Linux
+RUN apk add --no-cache \
+    fontconfig \
+    font-noto \
+    font-noto-latin \
+    ttf-freefont
+
 WORKDIR /app
 
 ENV NODE_ENV=production

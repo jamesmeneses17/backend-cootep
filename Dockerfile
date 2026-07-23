@@ -15,11 +15,7 @@ RUN npm run build
 FROM node:20-alpine AS runner
 
 # Instalar fuentes necesarias para pdfmake en Alpine Linux
-RUN apk add --no-cache \
-    fontconfig \
-    font-noto \
-    font-noto-latin \
-    ttf-freefont
+RUN apk add --no-cache fontconfig ttf-freefont
 
 WORKDIR /app
 

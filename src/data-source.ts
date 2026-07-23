@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import 'dotenv/config';
 // importa todas tus entidades reales aquí
 
 export const AppDataSource = new DataSource({

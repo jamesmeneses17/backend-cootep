@@ -32,11 +32,9 @@ import { ImportExcelModule } from './import-excel/import-excel.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [__dirname + '/src/*/.entity{.ts,.js}'],
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
         autoLoadEntities: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        ssl: configService.get('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
         // --- INICIO DE LA MODIFICACIÓN ---
         extra: {
           connectionLimit: 10, // Cambiado 'max' por 'connectionLimit'
@@ -44,7 +42,7 @@ import { ImportExcelModule } from './import-excel/import-excel.module';
         },
         // --- FIN DE LA MODIFICACIÓN ---
 
-        synchronize: true,
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),

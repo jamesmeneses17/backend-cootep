@@ -21,7 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
-    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d src/data-source.ts"
+    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d src/data-source.ts",
+    "seed": "ts-node -r dotenv/config src/seeds/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.2",
